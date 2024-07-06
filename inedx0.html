@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Second Cup - INVENTORY</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; }
+        .item-list { list-style-type: none; padding: 0; max-width: 400px; margin: 20px auto; }
+        .item { display: flex; justify-content: space-between; align-items: center; margin: 10px 0; padding: 10px; border: 1px solid #ddd; border-radius: 4px; }
+        .item span { flex-grow: 1; text-align: left; }
+        .status { padding: 5px 10px; border: none; border-radius: 4px; cursor: pointer; }
+        .available { background-color: green; color: white; }
+        .low { background-color: yellow; color: black; }
+        .out { background-color: red; color: white; }
+        .delete { margin-left: 10px; padding: 5px 10px; background-color: black; color: white; border: none; border-radius: 4px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Second Cup - INVENTORY</h1>
+    <input type="text" id="itemInput" placeholder="Enter item name...">
+    <button onclick="addItem()">Add Item</button>
+    <button onclick="saveItems()">Save Items</button>
+    <ul class="item-list" id="itemList"></ul>
+
+    <script>
+        const itemList = document.getElementById('itemList');
+
+        document.addEventListener('DOMContentLoaded', loadItems);
+
+        function addItem() {
+            const itemName = document.getElementById('itemInput').value.trim();
+            if (itemName === '') return;
+
+            const listItem = createListItem(itemName, 'available');
+            itemList.appendChild(listItem);
+
+            document.getElementById('itemInput').value = '';
+        }
+
+        function createListItem(name, status) {
+            const listItem = document.createElement('li');
+            listItem.classList.add('item');
+
+            const span = document.createElement('span');
+            span.textContent = name;
+
+            const statusButton = document.createElement('button');
+            statusButton.textContent = capitalizeFirstLetter(status);
+            statusButton.classList.add('status', status);
+            statusButton.onclick = changeStatus;
+
+            const deleteButton = document.createElement('button');
+            deleteButton.textContent = 'Delete';
+            deleteButton.classList.add('delete');
+            deleteButton.onclick = deleteItem;
+
+            listItem.appendChild(span);
+            listItem.appendChild(statusButton);
+            listItem.appendChild(deleteButton);
+
+            return listItem;
+        }
+
+        function changeStatus() {
+            if (this.classList.contains('available')) {
+                this.classList.remove('available');
+                this.classList.add('low');
+                this.textContent = 'Low';
+            } else if (this.classList.contains('low')) {
+                this.classList.remove('low');
+                this.classList.add('out');
+                this.textContent = 'Out';
+            } else if (this.classList.contains('out')) {
+                this.classList.remove('out');
+                this.classList.add('available');
+                this.textContent = 'Available';
+            }
+        }
+
+        function deleteItem() {
+            const item = this.parentNode;
+            itemList.removeChild(item);
+        }
+
+        function saveItems() {
+            const items = [];
+            itemList.childNodes.forEach(item => {
+                const name = item.querySelector('span').textContent;
+                const status = item.querySelector('button.status').classList[1];
+                items.push({ name, status });
+            });
+            localStorage.setItem('items', JSON.stringify(items));
+        }
+
+        function loadItems() {
+            const savedItems = JSON.parse(localStorage.getItem('items'));
+            if (savedItems) {
+                savedItems.forEach(item => {
+                    const listItem = createListItem(item.name, item.status);
+                    itemList.appendChild(listItem);
+                });
+            }
+        }
+
+        function capitalizeFirstLetter(string) {
+            return string.charAt(0).toUpperCase() + string.slice(1);
+        }
+    </script>
+</body>
+</html>
